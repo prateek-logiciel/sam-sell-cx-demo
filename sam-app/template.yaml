@@ -1,0 +1,185 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-app
+
+  Sample SAM Template for sam-app
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+
+Parameters:
+  StateHost:
+    Type: String
+    Description: The host URL for the state
+
+  StateUser:
+    Type: String
+    Description: The user for the state
+
+  StatePassword:
+    Type: String
+    Description: The password for the state
+
+  StatePort:
+    Type: String
+    Description: The port for the state
+
+  StateDatabase:
+    Type: String
+    Description: The database name
+
+  RedirectUri:
+    Type: String
+    Description: The Google Oauth callback
+
+  JwtSecret:
+    Type: String
+    Description: JWT token secret key
+
+  SecretKey:
+    Type: String
+    Description: Password Hash key
+
+  SMBDomain:
+    Type: String
+    Description: SMB Dashboard URL
+
+  SMTPServer:
+    Type: String
+    Description: SMTP SERVER 
+
+  SMTPPort:
+    Type: String
+    Description: SMTP PORT 
+
+  SMTPUsername:
+    Type: String
+    Description: SMTP USERNAME 
+
+  SMTPPassword:
+    Type: String
+    Description: SMTP PASSWORD 
+
+  SMTPFromEmail:
+    Type: String
+    Description: SMTP FROM EMAIL 
+
+Globals:
+  Function:
+    Timeout: 240
+    MemorySize: 1024  # Increase memory if necessary
+    Environment:
+      Variables:
+        # DB variables
+        STATE_HOST: !Ref StateHost
+        STATE_USER: !Ref StateUser
+        STATE_PASSWORD: !Ref StatePassword
+        STATE_PORT: !Ref StatePort
+        STATE_DATABASE: !Ref StateDatabase
+        #
+        REDIRECT_URI: !Ref RedirectUri
+        JWT_SECRET: !Ref JwtSecret
+        SECRET_KEY: !Ref SecretKey
+        SMB_DOMAIN: !Ref SMBDomain
+        # SMTP Email
+        SMTP_SERVER: !Ref SMTPServer
+        SMTP_PORT: !Ref SMTPPort
+        SMTP_USERNAME: !Ref SMTPUsername
+        SMTP_PASSWORD: !Ref SMTPPassword
+        SMTP_FROM_EMAIL: !Ref SMTPFromEmail
+
+  Api:
+    Cors:
+      AllowOrigin: "'*'"
+      AllowHeaders: "'*'"
+      AllowMethods: "'*'"
+      # AllowCredentials: true
+
+Resources:
+  APIsFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: apis/
+      Handler: app.lambda_handler
+      Runtime: python3.10
+      Architectures:
+        - x86_64
+      Events:
+        createSession:
+          Type: Api
+          Properties:
+            Path: /create_session
+            Method: post
+        createContactSession:
+          Type: Api
+          Properties:
+            Path: /create-contact-session
+            Method: post
+        userInfo:
+          Type: Api
+          Properties:
+            Path: /save-user-info
+            Method: post
+        createCalendarEvent:
+          Type: Api
+          Properties:
+            Path: /create-calendar-event
+            Method: post
+        login:
+          Type: Api
+          Properties:
+            Path: /login
+            Method: post
+        ForgetPassword:
+          Type: Api
+          Properties:
+            Path: /forget-password
+            Method: post
+        ResetPassword:
+          Type: Api
+          Properties:
+            Path: /reset-password
+            Method: post
+        ListCalendar:
+          Type: Api
+          Properties:
+            Path: /calendars
+            Method: get
+        ListSupportTicket:
+          Type: Api
+          Properties:
+            Path: /support-ticket
+            Method: get
+        ListAgent:
+          Type: Api
+          Properties:
+            Path: /agents
+            Method: get
+        AssignAgent:
+          Type: Api
+          Properties:
+            Path: /support-ticket/{ticket_id}/assign-agent/{agent_id}
+            Method: POST
+        ListLeads:
+          Type: Api
+          Properties:
+            Path: /leads
+            Method: get
+        ListAppointments:
+          Type: Api
+          Properties:
+            Path: /appointments
+            Method: get
+        CreateAppointment:
+          Type: Api
+          Properties:
+            Path: /create-appointment
+            Method: post
+        AssignCalendarToAgent:
+          Type: Api
+          Properties:
+            Path: /calendar/assign-agents
+            Method: post
+
