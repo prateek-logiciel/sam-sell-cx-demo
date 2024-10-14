@@ -27,6 +27,12 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
 
+    - name: Install dependencies
+      run: |
+        cd apis
+        pip install -r requirements.txt
+      working-directory: ./sam-app/apis
+
     - name: Build and Deploy SAM application
       working-directory: ./sam-app
       run: |
