@@ -8,6 +8,7 @@ on:
 env:
   BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
   AWS_REGION: ${{ secrets.AWS_REGION }}
+  SECRET_NAME: "sam-app-secrets"
 
 permissions:
   id-token: write
@@ -48,26 +49,16 @@ jobs:
           pip install -r requirements.txt
         working-directory: ./sam-app
 
+      # Fetch all secrets from AWS Secrets Manager and set them as environment variables
+      - name: Fetch secrets from AWS Secrets Manager
+        run: |
+          SECRETS_JSON=$(aws secretsmanager get-secret-value --secret-id ${{ env.SECRET_NAME }} --query SecretString --output text)
+          echo "$SECRETS_JSON" | jq -r 'to_entries[] | "\(.key)=\(.value)"' >> $GITHUB_ENV
+
       # Build SAM application
       - name: Build SAM application
         run: sam build
         working-directory: ./sam-app
-        
-      # Create parameters.json from environment variables dynamically
-      - name: Set environment variables for secrets
-        run: |
-          # Create parameters.json from environment variables dynamically
-          echo '{' > dynamic_parameters.json
-          for var in $(compgen -e); do
-            # Check if the variable name consists of letters, numbers, and underscores
-            if [[ $var =~ ^[a-zA-Z0-9_]+$ ]]; then
-              value=$(printenv $var)
-              key=$(echo $var | sed 's/_/-/g')  # Replace underscores with hyphens if needed
-              echo "\"$key\": \"$value\"," >> dynamic_parameters.json
-            fi
-          done
-          echo '}' >> dynamic_parameters.json
-          cat dynamic_parameters.json
 
       # Deploy SAM application
       - name: Deploy SAM application
@@ -78,7 +69,7 @@ jobs:
           sam deploy \
             --stack-name sam-app-${{ env.BRANCH_NAME }} \
             --region ${{ env.AWS_REGION }} \
-            --parameter-overrides $(cat dynamic_parameters.json | jq -r '. | to_entries[] | "ParameterKey=\(.key),ParameterValue=\(.value)"') \
+            --parameter-overrides $(echo "$SECRETS_JSON" | jq -r 'to_entries[] | "\(.key)=\(.value)"') \
             --capabilities CAPABILITY_IAM \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
