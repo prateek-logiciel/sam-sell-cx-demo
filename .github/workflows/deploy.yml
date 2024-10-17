@@ -59,7 +59,7 @@ jobs:
           sam deploy \
             --stack-name sam-app-${{ env.BRANCH_NAME }} \
             --region ${{ env.AWS_REGION }} \
-            --parameter-overrides $(cat parameters.json | jq -r 'to_entries | .[] | "\(.key)=\(.value)"') \
+            --parameter-overrides $(cat parameters.json | jq -r '. | to_entries[] | "ParameterKey=\(.key),ParameterValue=\(.value)"') \
             --capabilities CAPABILITY_IAM \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
