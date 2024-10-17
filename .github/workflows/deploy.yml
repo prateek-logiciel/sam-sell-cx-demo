@@ -59,21 +59,7 @@ jobs:
           sam deploy \
             --stack-name sam-app-${{ env.BRANCH_NAME }} \
             --region ${{ env.AWS_REGION }} \
-            --parameter-overrides \
-              StateHost=${{ secrets.STATE_HOST }} \
-              StateUser=${{ secrets.STATE_USER }} \
-              StatePassword=${{ secrets.STATE_PASSWORD }} \
-              StatePort=${{ secrets.STATE_PORT }} \
-              StateDatabase=${{ secrets.STATE_DATABASE }} \
-              RedirectUri=${{ secrets.REDIRECT_URI }} \
-              JwtSecret=${{ secrets.JWT_SECRET }} \
-              SecretKey=${{ secrets.SECRET_KEY }} \
-              SMBDomain=${{ secrets.SMB_DOMAIN }} \
-              SMTPServer=${{ secrets.SMTP_SERVER }} \
-              SMTPPort=${{ secrets.SMTP_PORT }} \
-              SMTPUsername=${{ secrets.SMTP_USERNAME }} \
-              SMTPPassword=${{ secrets.SMTP_PASSWORD }} \
-              SMTPFromEmail=${{ secrets.SMTP_FROM_EMAIL }} \
+            --parameter-overrides $(cat parameters.json | jq -r 'to_entries | .[] | "\(.key)=\(.value)"') \
             --capabilities CAPABILITY_IAM \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
