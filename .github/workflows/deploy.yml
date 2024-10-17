@@ -62,10 +62,7 @@ jobs:
 
       # Deploy SAM application
       - name: Deploy SAM application
-        run: |
-          ls -l dynamic_parameters.json
-          cat dynamic_parameters.json
-          
+        run: |          
           sam deploy \
             --stack-name sam-app-${{ env.BRANCH_NAME }} \
             --region ${{ env.AWS_REGION }} \
