@@ -62,11 +62,14 @@ jobs:
 
       # Deploy SAM application
       - name: Deploy SAM application
-        run: |          
+        run: |
+          SECRETS_JSON=$(aws secretsmanager get-secret-value --secret-id ${{ env.SECRET_NAME }} --query SecretString --output text)
+          PARAMETER_OVERRIDES=$(echo "$SECRETS_JSON" | jq -r 'to_entries[] | "ParameterKey=\(.key),ParameterValue=\(.value)"' | tr '\n' ' ')
+          
           sam deploy \
             --stack-name sam-app-${{ env.BRANCH_NAME }} \
             --region ${{ env.AWS_REGION }} \
-            --parameter-overrides $(echo "$SECRETS_JSON" | jq -r 'to_entries[] | "\(.key)=\(.value)"') \
+            --parameter-overrides $PARAMETER_OVERRIDES \
             --capabilities CAPABILITY_IAM \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
